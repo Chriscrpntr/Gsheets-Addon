@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--Author: Aliafriend-->
+<html>
+<head>
+  <base target="_top">
+  <style>
+    #container {
+      display: flex; /* Use flexbox for side-by-side arrangement */
+    }
+    #from, #fromsemi,#to,#tocomma {
+      height: 20px;
+      width: 275px;
+      font-family: monospace;
+      overflow-wrap: normal;
+    }
+    #to, #tocomma{
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+<script>
+  function localediff(from) {
+    google.script.run.withSuccessHandler(function(convertedValue) {
+      document.getElementById("to").value = convertedValue;
+    }).localediff(from);
+  }
+  function reverseLocalediff(from) {
+    google.script.run.withSuccessHandler(function(convertedValue) {
+      document.getElementById("tocomma").value = convertedValue;
+    }).reverseLocalediff(from);
+  }
+  function copyToClipboard(elementId) {
+    try{
+      const textToCopy = document.getElementById(elementId).value;
+      navigator.clipboard.writeText(textToCopy);}
+    catch{}
+  }
+  function timestamp() {
+    google.script.run.withSuccessHandler(function() {}).setTimestamp();
+  }
+  function cleanRange() {
+    google.script.run.withSuccessHandler(function() {}).cleanRange();
+  }
+
+</script>
+<label for="from">Comma Formula to Convert</label>
+<br>
+<br>
+<input type="text" id="from" />
+<br>
+<br>
+<label for="to">Semi-Colon Converted</label>
+<br>
+<br>
+<input type="text" id="to" readonly />
+<br>
+<br>
+<input type="button" value="Convert Locale" onclick="localediff(document.getElementById('from').value)" />
+<input type="button" value="Copy" onclick="copyToClipboard('to')" />
+<br>
+<br>
+<label for="fromsemi">Semi-Colon Formula to Convert</label>
+<br>
+<br>
+<input type="text" id="fromsemi" />
+<br>
+<br>
+<label for="tocomma">Comma Converted</label>
+<br>
+<br>
+<input type="text" id="tocomma" readonly />
+<br>
+<br>
+<input type="button" value="Convert Locale" onclick="reverseLocalediff(document.getElementById('fromsemi').value)" />
+<input type="button" value="Copy" onclick="copyToClipboard('tocomma')" />
+<br>
+<br>
+<input type="button" value="Timestamp" onclick="timestamp()" />
+<br>
+<br>
+<input type="button" value="Clean Range" onclick="cleanRange()" />
+</body>
+</html>
