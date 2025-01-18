@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--Author: Aliafriend-->
 <html>
-  <head>
-    <base target="_top">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,500&display=swap" rel="stylesheet">
+<head>
+	<base target="_top">
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,500&display=swap" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
 	<style>
 		:root {
@@ -46,7 +46,7 @@
 		.btn-group input:active {
 			background-color: #dff2e4;
 			border: 1px solid transparent;
-       		box-shadow: 0 2px 6px 2px rgba(60, 64, 67, .15);
+			box-shadow: 0 2px 6px 2px rgba(60, 64, 67, .15);
 		}
 		.btn-group {
 			grid-template-columns: 1fr 1fr;
@@ -63,83 +63,99 @@
 		.arrow-icon:active {
 			color: rgba(0, 0, 0, 0.9);
 		}
-		</style>
-  </head>
-  <body>
-	<div class="container">
-		<div class="fieldset">
-			<label class="item" id="input-label">
-				Comma Formula to Convert
-				<input type="text" id="input">
-			</label>
-			<a title="Swap Locale" class="arrow-icon" id="swapLocale">
-				<i class="fa-solid fa-right-left"></i>
-			</a>
-			<label class="item" id="output-label">
-				Semi-Colon Converted
-				<input type="text" id="output" disabled>
-			</label>
-			<div class="btn-group item">
-				<input type="button" value="Convert Locale" id="converter">
-				<input type="button" value="Copy" id="copy">
-			</div>
-		</div>
-		<hr width="100%" color="#eee">
-		<div class="buttons">
-			Utilities
-			<div class="btn-group item">
-				<input type="button" value="Timestamp" id="ts">
-				<input type="button" value="Clean Range" id="clean">
-			</div>
+	</style>
+</head>
+<body>
+<div class="container">
+	<div class="fieldset">
+		<label class="item" id="input-label">
+			Comma Formula to Convert
+			<input type="text" id="input">
+		</label>
+		<a title="Swap Locale" class="arrow-icon" id="swapLocale">
+			<i class="fa-solid fa-right-left"></i>
+		</a>
+		<label class="item" id="output-label">
+			Semi-Colon Converted
+			<input type="text" id="output" disabled>
+		</label>
+		<div class="btn-group item">
+			<input type="button" value="Convert Locale" id="converter">
+			<input type="button" value="Copy" id="copy">
 		</div>
 	</div>
-	<script>
-		document.getElementById("swapLocale").addEventListener("click", swapLocale);
-		document.getElementById("converter").addEventListener("click", convertLocale);
-		document.getElementById("copy").addEventListener("click", copyToClipboard);
-		document.getElementById("ts").addEventListener("click", timestamp);
-		document.getElementById("clean").addEventListener("click", cleanRange);
+	<hr width="100%" color="#eee">
+	Unpivot
+	<label class="item" id="unpivot-label">
+		Columns to Skip
+		<input type="number" id="columns-to-skip">
+	</label>
+	<div class="btn-group item">
+		<input type="button" value="Unpivot" id="unpiv">
+	</div>
+	<hr width="100%" color="#eee">
+	<div class="buttons">
+		Utilities
+		<div class="btn-group item">
+			<input type="button" value="Timestamp" id="ts">
+			<input type="button" value="Clean Range" id="clean">
+		</div>
+	</div>
+</div>
+<script>
+	document.getElementById("swapLocale").addEventListener("click", swapLocale);
+	document.getElementById("converter").addEventListener("click", convertLocale);
+	document.getElementById("copy").addEventListener("click", copyToClipboard);
+	document.getElementById("ts").addEventListener("click", timestamp);
+	document.getElementById("clean").addEventListener("click", cleanRange);
+	document.getElementById("unpiv").addEventListener("click",unpivot)
 
-		let isCommaToSemicolon = true;
+	let isCommaToSemicolon = true;
 
-		function swapLocale() {
-			const input = document.getElementById("input-label");
-			const output = document.getElementById("output-label");
+	function swapLocale() {
+		const input = document.getElementById("input-label");
+		const output = document.getElementById("output-label");
 
-			const swapMapping = {
-				"Comma": "Semi-Colon",
-				"Semi-Colon": "Comma"
-			};
-			const replaceWords = (text) => text.replace(/Comma|Semi-Colon/g, (match) => swapMapping[match]);
+		const swapMapping = {
+			"Comma": "Semi-Colon",
+			"Semi-Colon": "Comma"
+		};
+		const replaceWords = (text) => text.replace(/Comma|Semi-Colon/g, (match) => swapMapping[match]);
 
-			input.innerHTML = replaceWords(input.innerHTML);
-			output.innerHTML = replaceWords(output.innerHTML);
+		input.innerHTML = replaceWords(input.innerHTML);
+		output.innerHTML = replaceWords(output.innerHTML);
 
-			isCommaToSemicolon = !isCommaToSemicolon;
-		}
+		isCommaToSemicolon = !isCommaToSemicolon;
+	}
 
-		function convertLocale() {
-			const input = document.getElementById("input").value;
+	function convertLocale() {
+		const input = document.getElementById("input").value;
 
-			const conversionFunction = isCommaToSemicolon ? "localediff" : "reverseLocalediff";
+		const conversionFunction = isCommaToSemicolon ? "localediff" : "reverseLocalediff";
 
-			google.script.run.withSuccessHandler((convertedValue) => {
-				document.getElementById("output").value = convertedValue;
-			})[conversionFunction](input);
-		}
+		google.script.run.withSuccessHandler((convertedValue) => {
+			document.getElementById("output").value = convertedValue;
+		})[conversionFunction](input);
+	}
 
-		function copyToClipboard() {
-			const textToCopy = document.getElementById("output").value;
-			navigator.clipboard.writeText(textToCopy);
-		}
+	function copyToClipboard() {
+		const textToCopy = document.getElementById("output").value;
+		navigator.clipboard.writeText(textToCopy);
+	}
 
-		function timestamp() {
-		  google.script.run.setTimestamp();
-		}
+	function timestamp() {
+		google.script.run.setTimestamp();
+	}
 
-		function cleanRange() {
-		  google.script.run.cleanRange();
-		}
-	</script>
-  </body>
+	function cleanRange() {
+		google.script.run.cleanRange();
+	}
+
+	function unpivot() {
+		const input = document.getElementById("columns-to-skip").value;
+
+		google.script.run.withSuccessHandler(function() {}).unpivot(input);
+	}
+</script>
+</body>
 </html>
