@@ -1,84 +1,167 @@
 <!DOCTYPE html>
-<!--Author: Aliafriend-->
 <html>
 <head>
   <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
   <style>
-    #container {
-      display: flex; /* Use flexbox for side-by-side arrangement */
+    :root {
+      --gFont: Roboto Flex;
+      --gFontSizeD: 14px;
+      --gLetterSpace: 0.25px;
+      --gBorderRadius: 4px;
     }
-    #from, #fromsemi,#to,#tocomma {
-      height: 20px;
-      width: 275px;
-      font-family: monospace;
-      overflow-wrap: normal;
+    * {
+      font-family: var(--gFont);
+      font-size: var(--gFontSizeD);
+      letter-spacing: var(--gLetterSpace);
+      border-radius: var(--gBorderRadius);
+      box-sizing: border-box;
+      padding: 0;
     }
-    #to, #tocomma{
-      background-color: #eee;
+    .container, .fieldset, .btn-group {
+      display: grid;
+      gap: 8px;
+    }
+    input {
+      border: 1px solid #dadce0;
+      padding: 1px 8px;
+      height: 36px;
+      width: 100%;
+    }
+    .fieldset input:focus {
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      outline: none;
+    }
+    .btn-group input {
+      background-color: #fff;
+      color: #137333;
+      cursor: pointer;
+    }
+    .btn-group input:hover {
+      background-color: #f8fcf9;
+      border: 1px solid #c8e7d1;
+    }
+    .btn-group input:active {
+      background-color: #dff2e4;
+      border: 1px solid transparent;
+      box-shadow: 0 2px 6px 2px rgba(60, 64, 67, .15);
+    }
+    .btn-group {
+      grid-template-columns: 1fr 1fr;
+    }
+    .arrow-icon {
+      justify-self: center;
+      color: rgba(0, 0, 0, 0.54);
+      transform: rotate(90deg);
+      cursor: pointer;
+    }
+    .arrow-icon:hover {
+      color: rgba(0, 0, 0, 0.7);
+    }
+    .arrow-icon:active {
+      color: rgba(0, 0, 0, 0.9);
     }
   </style>
 </head>
 <body>
+<div class="container">
+  <div class="fieldset">
+    <label class="item" id="input-label">
+      Comma Formula to Convert
+      <input type="text" id="input">
+    </label>
+    <a title="Swap Locale" class="arrow-icon" id="swapLocale">
+      <i class="fa-solid fa-right-left"></i>
+    </a>
+    <label class="item" id="output-label">
+      Semi-Colon Converted
+      <input type="text" id="output" disabled>
+    </label>
+    <div class="btn-group item">
+      <input type="button" value="Convert Locale" id="converter">
+      <input type="button" value="Copy" id="copy">
+    </div>
+  </div>
+  <hr width="100%" color="#eee">
+  Unpivot
+  <label class="item" id="unpivot-label">
+    Columns to Skip
+    <input type="number" id="columns-to-skip">
+  </label>
+  <div class="btn-group item">
+    <input type="button" value="Unpivot" id="unpiv">
+  </div>
+  <hr width="100%" color="#eee">
+  <div class="buttons">
+    Utilities
+    <div class="btn-group item">
+      <input type="button" value="Timestamp" id="ts">
+      <input type="button" value="Clean Range" id="clean">
+      <input type="button" value="To Numeric" id="tonum">
+    </div>
+  </div>
+</div>
 <script>
-  function localediff(from) {
-    google.script.run.withSuccessHandler(function(convertedValue) {
-      document.getElementById("to").value = convertedValue;
-    }).localediff(from);
+  document.getElementById("swapLocale").addEventListener("click", swapLocale);
+  document.getElementById("converter").addEventListener("click", convertLocale);
+  document.getElementById("copy").addEventListener("click", copyToClipboard);
+  document.getElementById("ts").addEventListener("click", timestamp);
+  document.getElementById("clean").addEventListener("click", cleanRange);
+  document.getElementById("unpiv").addEventListener("click",unpivot)
+  document.getElementById("tonum").addEventListener("click",tonum)
+
+  let isCommaToSemicolon = true;
+
+  function swapLocale() {
+    const input = document.getElementById("input-label");
+    const output = document.getElementById("output-label");
+
+    const swapMapping = {
+      "Comma": "Semi-Colon",
+      "Semi-Colon": "Comma"
+    };
+    const replaceWords = (text) => text.replace(/Comma|Semi-Colon/g, (match) => swapMapping[match]);
+
+    input.innerHTML = replaceWords(input.innerHTML);
+    output.innerHTML = replaceWords(output.innerHTML);
+
+    isCommaToSemicolon = !isCommaToSemicolon;
   }
-  function reverseLocalediff(from) {
-    google.script.run.withSuccessHandler(function(convertedValue) {
-      document.getElementById("tocomma").value = convertedValue;
-    }).reverseLocalediff(from);
+
+  function convertLocale() {
+    const input = document.getElementById("input").value;
+
+    const conversionFunction = isCommaToSemicolon ? "localediff" : "reverseLocalediff";
+
+    google.script.run.withSuccessHandler((convertedValue) => {
+      document.getElementById("output").value = convertedValue;
+    })[conversionFunction](input);
   }
-  function copyToClipboard(elementId) {
-    try{
-      const textToCopy = document.getElementById(elementId).value;
-      navigator.clipboard.writeText(textToCopy);}
-    catch{}
+
+  function copyToClipboard() {
+    const textToCopy = document.getElementById("output").value;
+    navigator.clipboard.writeText(textToCopy);
   }
+
   function timestamp() {
-    google.script.run.withSuccessHandler(function() {}).setTimestamp();
+    google.script.run.setTimestamp();
   }
+
   function cleanRange() {
-    google.script.run.withSuccessHandler(function() {}).cleanRange();
+    google.script.run.cleanRange();
+  }
+
+  function unpivot() {
+    const input = document.getElementById("columns-to-skip").value;
+
+    google.script.run.withSuccessHandler(function() {}).unpivot(input);
+  }
+
+  function tonum() {
+    google.script.run.withSuccessHandler(function() {}).convertToNumeric();
   }
 
 </script>
-<label for="from">Comma Formula to Convert</label>
-<br>
-<br>
-<input type="text" id="from" />
-<br>
-<br>
-<label for="to">Semi-Colon Converted</label>
-<br>
-<br>
-<input type="text" id="to" readonly />
-<br>
-<br>
-<input type="button" value="Convert Locale" onclick="localediff(document.getElementById('from').value)" />
-<input type="button" value="Copy" onclick="copyToClipboard('to')" />
-<br>
-<br>
-<label for="fromsemi">Semi-Colon Formula to Convert</label>
-<br>
-<br>
-<input type="text" id="fromsemi" />
-<br>
-<br>
-<label for="tocomma">Comma Converted</label>
-<br>
-<br>
-<input type="text" id="tocomma" readonly />
-<br>
-<br>
-<input type="button" value="Convert Locale" onclick="reverseLocalediff(document.getElementById('fromsemi').value)" />
-<input type="button" value="Copy" onclick="copyToClipboard('tocomma')" />
-<br>
-<br>
-<input type="button" value="Timestamp" onclick="timestamp()" />
-<br>
-<br>
-<input type="button" value="Clean Range" onclick="cleanRange()" />
 </body>
 </html>
