@@ -99,6 +99,7 @@
       <input type="button" value="Timestamp" id="ts">
       <input type="button" value="Clean Range" id="clean">
       <input type="button" value="To Numeric" id="tonum">
+      <input type="button" value="Letify Ranges" id="letify">
     </div>
   </div>
 </div>
@@ -108,8 +109,9 @@
   document.getElementById("copy").addEventListener("click", copyToClipboard);
   document.getElementById("ts").addEventListener("click", timestamp);
   document.getElementById("clean").addEventListener("click", cleanRange);
-  document.getElementById("unpiv").addEventListener("click",unpivot)
-  document.getElementById("tonum").addEventListener("click",tonum)
+  document.getElementById("unpiv").addEventListener("click",unpivot);
+  document.getElementById("tonum").addEventListener("click",tonum);
+  document.getElementById("letify").addEventListener("click",letify);
 
   let isCommaToSemicolon = true;
 
@@ -160,6 +162,10 @@
 
   function tonum() {
     google.script.run.withSuccessHandler(function() {}).convertToNumeric();
+  }
+
+  function letify() {
+    google.script.run.withSuccessHandler(function() {}).letifyFormula();
   }
 
 </script>

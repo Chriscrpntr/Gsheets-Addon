@@ -1,10 +1,12 @@
+// Author: Aliafriend
+
 function AddForm(){
     var form = HtmlService.createHtmlOutputFromFile("SheetsTools").setTitle("Sheets Discord Tools");
     SpreadsheetApp.getUi().showSidebar(form);
 }
 
 function onOpen(){
-    let menu = SpreadsheetApp.getUi().createAddonMenu();
+    let menu = SpreadsheetApp.getUi().createMenu("Sheets Discord Tools");
     menu.addItem('Sheets Discord Tools', 'AddForm');
     menu.addToUi();
 }
@@ -109,4 +111,48 @@ function tryParseNumeric(str) {
             return num;
     }
     return null;
+}
+
+
+function letifyFormula() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getActiveSheet();
+    const cell = sheet.getActiveCell();
+    const formula = cell.getFormula();
+    if (!formula) return "";
+
+    const regex = /([^",({]+!)?([A-Za-z]+[0-9]*:[A-Za-z]+[0-9]*)(?=(?:[^"]*"[^"]*")*[^"]*$)|([^",({]+!)?([A-Za-z]+[0-9]+)(?=(?:[^"]*"[^"]*")*[^"]*$)/g;
+
+    let match;
+    let ranges = [];
+    while ((match = regex.exec(formula)) !== null) {
+        ranges.push(match[0]);
+    }
+
+    ranges = [...new Set(ranges)];
+    Logger.log(ranges)
+
+    let letVariables = "";
+    let variableCounter = 1;
+    let newFormula = formula;
+
+    for (const range of ranges) {
+        const variableName = "variable" + variableCounter;
+        letVariables += `\n${variableName},${range},`;
+        const escapedRange = range.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regexReplace = new RegExp("\\b" + escapedRange + "\\b", "g");
+        newFormula = newFormula.replace(regexReplace, variableName);
+        variableCounter++;
+    }
+
+    if (letVariables) {
+        letVariables = letVariables.slice(0, -1);
+        if (newFormula.startsWith("=")) {
+            newFormula = newFormula.substring(1);
+        }
+        cell.setValue(`=LET(${letVariables},\n${newFormula})`);
+        return `=LET(${letVariables},\n${newFormula})`;
+    } else {
+        return formula;
+    }
 }
