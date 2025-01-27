@@ -102,6 +102,17 @@
       <input type="button" value="Letify Ranges" id="letify">
     </div>
   </div>
+  <hr width="100%" color="#eee">
+  Input
+  <input type="text" id="cellinput">
+  Regex Pattern
+  <input type="text" id="cellregex">
+  Output
+  <input type="text" id="cellregexoutput">
+  <div class="btn-group item">
+    <input type="button" value="Output Regex" id="oregex">
+  </div>
+  <hr width="100%" color="#eee">
 </div>
 <script>
   document.getElementById("swapLocale").addEventListener("click", swapLocale);
@@ -112,6 +123,9 @@
   document.getElementById("unpiv").addEventListener("click",unpivot);
   document.getElementById("tonum").addEventListener("click",tonum);
   document.getElementById("letify").addEventListener("click",letify);
+  document.getElementById("cellregex").addEventListener("input", applyRegex);
+  document.getElementById("cellinput").addEventListener("input", applyRegex);
+  document.getElementById("oregex").addEventListener("click",outputRegex);
 
   let isCommaToSemicolon = true;
 
@@ -166,6 +180,24 @@
 
   function letify() {
     google.script.run.withSuccessHandler(function() {}).letifyFormula();
+  }
+
+  function applyRegex() {
+    const cellValue = document.getElementById("cellinput").value;
+    const regexPattern = document.getElementById("cellregex").value;
+
+    if (cellValue && regexPattern) {
+      google.script.run.withSuccessHandler(function(result) {
+        document.getElementById("cellregexoutput").value = result;
+      }).regexCell(cellValue, regexPattern);
+    } else {
+      document.getElementById("cellregexoutput").value = "";
+    }
+  }
+
+  function outputRegex() {
+    cellvalue = document.getElementById("cellregexoutput").value;
+    google.script.run.withSuccessHandler(function() {}).outputRegex(cellvalue);
   }
 
 </script>

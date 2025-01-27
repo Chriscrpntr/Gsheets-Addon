@@ -1,14 +1,35 @@
-// Author: Aliafriend
+function onHomepage(e) {
+    return createMainCard();
+}
 
-function AddForm(){
+function createMainCard() {
+    let card = CardService.newCardBuilder()
+        .setHeader(CardService.newCardHeader().setTitle("Sheets Discord Tools"))
+        .addSection(createToolsSection());
+    return card.build();
+}
+
+function createToolsSection() {
+    let section = CardService.newCardSection()
+        .setHeader("Tools");
+    let sidebarbutton = CardService.newTextButton()
+        .setText("Show Sidebar")
+        .setOnClickAction(CardService.newAction().setFunctionName("showSidebar"));
+    section.addWidget(CardService.newButtonSet().addButton(sidebarbutton));
+    return section;
+}
+
+
+function showSidebar(){
     var form = HtmlService.createHtmlOutputFromFile("SheetsTools").setTitle("Sheets Discord Tools");
     SpreadsheetApp.getUi().showSidebar(form);
 }
 
 function onOpen(){
-    let menu = SpreadsheetApp.getUi().createMenu("Sheets Discord Tools");
-    menu.addItem('Sheets Discord Tools', 'AddForm');
-    menu.addToUi();
+    SpreadsheetApp.getUi().createAddonMenu()
+        .addItem('Sheets Discord Tools','showSidebar')
+        .addToUi();
+    showSidebar();
 }
 
 function localediff(input) {
@@ -154,5 +175,41 @@ function letifyFormula() {
         return `=LET(${letVariables},\n${newFormula})`;
     } else {
         return formula;
+    }
+}
+
+function regexCell(str, pattern) {
+    const regex = new RegExp(pattern, "g");
+    const matches = [];
+    let match;
+
+    while ((match = regex.exec(str)) !== null) {
+        matches.push(match[0]);
+    }
+
+    if (matches.length > 0) {
+        return matches;
+    } else {
+        return "No Matches";
+    }
+}
+
+function outputRegex(regexoutputValues){
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getActiveSheet();
+    const activeCell = sheet.getActiveCell(); // Get the currently selected cell
+
+    if (!activeCell) {
+        Logger.log("No cell is selected.");
+        return;
+    }
+
+    const startRow = activeCell.getRow();
+    const startColumn = activeCell.getColumn();
+
+    const splitvalues = regexoutputValues.split(",").map(s => s.trim());
+
+    for (let i = 0; i < splitvalues.length; i++) {
+        sheet.getRange(startRow + i, startColumn).setValue(splitvalues[i]);
     }
 }
