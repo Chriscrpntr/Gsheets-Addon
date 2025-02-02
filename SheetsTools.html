@@ -100,6 +100,7 @@
       <input type="button" value="Clean Range" id="clean">
       <input type="button" value="To Numeric" id="tonum">
       <input type="button" value="Letify Ranges" id="letify">
+      <input type="button" value="Crop Sheet" id="cropSheet">
     </div>
   </div>
   <hr width="100%" color="#eee">
@@ -126,6 +127,7 @@
   document.getElementById("cellregex").addEventListener("input", applyRegex);
   document.getElementById("cellinput").addEventListener("input", applyRegex);
   document.getElementById("oregex").addEventListener("click",outputRegex);
+  document.getElementById("cropSheet").addEventListener("click",cropSheet);
 
   let isCommaToSemicolon = true;
 
@@ -166,6 +168,10 @@
 
   function cleanRange() {
     google.script.run.cleanRange();
+  }
+
+  function cropSheet() {
+    google.script.run.cropSheet();
   }
 
   function unpivot() {

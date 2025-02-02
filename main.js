@@ -213,3 +213,24 @@ function outputRegex(regexoutputValues){
         sheet.getRange(startRow + i, startColumn).setValue(splitvalues[i]);
     }
 }
+
+function cropSheet() {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+    var selection = sheet.getActiveRange();
+
+    var startRow = selection.getRow();
+    var startColumn = selection.getColumn();
+    var numRows = selection.getNumRows();
+    var numCols = selection.getNumColumns();
+    var maxRows = sheet.getMaxRows();
+    var maxCols = sheet.getMaxColumns();
+
+    if (maxRows > startRow + numRows - 1) {
+        sheet.deleteRows(startRow + numRows, maxRows - (startRow + numRows - 1));
+    }
+
+    if (maxCols > startColumn + numCols - 1) {
+        sheet.deleteColumns(startColumn + numCols, maxCols - (startColumn + numCols - 1));
+    }
+}
