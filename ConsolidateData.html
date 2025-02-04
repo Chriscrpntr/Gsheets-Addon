@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Consolidate Data</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --gFont: Roboto Flex;
+      --gFontSizeD: 14px;
+      --gLetterSpace: 0.25px;
+      --gBorderRadius: 4px;
+    }
+    * {
+      font-family: var(--gFont);
+      font-size: var(--gFontSizeD);
+      letter-spacing: var(--gLetterSpace);
+      border-radius: var(--gBorderRadius);
+      box-sizing: border-box;
+      padding: 0;
+    }
+    .container {
+      padding: 20px;
+      display: grid;
+      gap: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid #ccc;
+    }
+    label {
+      display: inline-block;
+      margin-right: 5px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:active {
+      background-color: #3e8e41;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h3>Select Sheets and Ranges</h3>
+  <form id="myForm">
+    <div id="sheetList"></div>
+    <button type="submit" id="consolidate">Consolidate</button>
+    <button type="button" id="cancelButton">Cancel</button>
+  </form>
+</div>
+
+<script>
+  window.onload = function() {
+    google.script.run.withSuccessHandler(populateSheetList).getSheetNames();
+  };
+
+  document.getElementById("consolidate").addEventListener("click", submitForm);
+  document.getElementById("cancelButton").addEventListener("click", closeDialog);
+
+  function populateSheetList(sheetNames) {
+    var sheetListDiv = document.getElementById("sheetList");
+    var table = document.createElement('table');
+
+    var selectAllDiv = document.createElement('div');
+    selectAllDiv.style.marginBottom = "5px";
+    selectAllDiv.innerHTML = '<input type="checkbox" id="selectAll"> <label for="selectAll">Select All</label>';
+    sheetListDiv.appendChild(selectAllDiv);
+
+    var thead = table.insertRow();
+    thead.insertCell().textContent = "Select";
+    thead.insertCell().textContent = "Sheet Name";
+    thead.insertCell().textContent = "Range";
+
+    for (var i = 0; i < sheetNames.length; i++) {
+      var sheetName = sheetNames[i];
+      var row = table.insertRow();
+      var selectCell = row.insertCell();
+      var nameCell = row.insertCell();
+      var rangeCell = row.insertCell();
+
+      selectCell.innerHTML = `<input type="checkbox" name="selectedSheets" value="${sheetName}" id="${sheetName}">`;
+      nameCell.textContent = sheetName;
+      rangeCell.innerHTML = `<input type="text" name="rangeInputs[${sheetName}]" id="range${sheetName}">`;
+    }
+
+    sheetListDiv.appendChild(table);
+
+    var selectAllCheckbox = document.getElementById('selectAll');
+    selectAllCheckbox.addEventListener('change', function() {
+      var checkboxes = table.querySelectorAll('input[type="checkbox"]');
+      for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = this.checked;
+      }
+    });
+  }
+
+  function submitForm(event) {
+    event.preventDefault();
+
+    var formObject = {};
+    var elements = document.getElementById("myForm").elements;
+
+    formObject.selectedSheets = [];
+    formObject.rangeInputs = {};
+
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (element.type === "checkbox" && element.checked) {
+        formObject.selectedSheets.push(element.value);
+      } else if (element.type === "text") {
+        var sheetName = element.name.match(/\[(.*?)\]/)[1];
+        formObject.rangeInputs[sheetName] = element.value;
+      }
+    }
+    google.script.run
+            .withSuccessHandler(closeDialog)
+            .withFailureHandler(handleError)
+            .consolidateData(formObject);
+  }
+
+  function handleError(error) {
+    alert(error);
+  }
+
+  function closeDialog() {
+    google.script.host.close();
+  }
+
+</script>
+
+</body>
+</html>

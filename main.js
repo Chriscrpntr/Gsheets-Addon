@@ -1,36 +1,60 @@
+// Set Up Section ------------------------------------------------------------------
+
 function onHomepage(e) {
     return createMainCard();
+}
+
+function onOpen(){
+    SpreadsheetApp.getUi().createAddonMenu()
+        .addItem('Sheets Discord Tools','showSidebar')
+        .addItem('Consolidate Data', 'openConsolidateDataDialog')
+        .addToUi();
 }
 
 function createMainCard() {
     let card = CardService.newCardBuilder()
         .setHeader(CardService.newCardHeader().setTitle("Sheets Discord Tools"))
-        .addSection(createToolsSection());
+        .addSection(createToolsSection())
+        .addSection(createConsolidateSection());
     return card.build();
+}
+
+function createConsolidateSection() {
+    let consolidateSection = CardService.newCardSection()
+        .setHeader("Consolidate Data");
+    let consolidateButton = CardService.newTextButton()
+        .setText("Consolidate Tool")
+        .setOnClickAction(CardService.newAction().setFunctionName("openConsolidateDataDialog"));
+    consolidateSection.addWidget(CardService.newButtonSet().addButton(consolidateButton));
+
+    return consolidateSection;
 }
 
 function createToolsSection() {
     let section = CardService.newCardSection()
-        .setHeader("Tools");
+        .setHeader("Spreadsheet Tools");
     let sidebarbutton = CardService.newTextButton()
         .setText("Show Sidebar")
         .setOnClickAction(CardService.newAction().setFunctionName("showSidebar"));
     section.addWidget(CardService.newButtonSet().addButton(sidebarbutton));
+
     return section;
 }
 
+
+function openConsolidateDataDialog() {
+    var html = HtmlService.createHtmlOutputFromFile('ConsolidateData')
+        .setWidth(800)
+        .setHeight(800);
+    SpreadsheetApp.getUi().showModalDialog(html, 'Consolidate Data');
+}
 
 function showSidebar(){
     var form = HtmlService.createHtmlOutputFromFile("SheetsTools").setTitle("Sheets Discord Tools");
     SpreadsheetApp.getUi().showSidebar(form);
 }
 
-function onOpen(){
-    SpreadsheetApp.getUi().createAddonMenu()
-        .addItem('Sheets Discord Tools','showSidebar')
-        .addToUi();
-    showSidebar();
-}
+// Locale Conversion Section ------------------------------------------------------------------
 
 function localediff(input) {
     const updatedText1 = input.replace(/\{([^{}]*)\}/g, (match, group1) => {
@@ -45,6 +69,8 @@ function reverseLocalediff(input) {
     return restoredText1.replace(/;(?![^{]*\})/g, ',');
 }
 
+// Timestamp Section ------------------------------------------------------------------
+
 function setTimestamp() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getActiveSheet();
@@ -53,6 +79,8 @@ function setTimestamp() {
     var formattedDate = Utilities.formatDate(now, Session.getScriptTimeZone(), "MM//dd/yyyy HH:mm:ss");
     cell.setValue(formattedDate);
 }
+
+// Clean Range Section ------------------------------------------------------------------
 
 function cleanRange() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -75,6 +103,7 @@ function cleanAndTrim(text) {
     return cleanedText.trim();
 }
 
+// Unpivot Section ------------------------------------------------------------------
 
 function unpivot(input) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -103,6 +132,8 @@ function unpivot(input) {
     const newSheet = ss.insertSheet("Unpivoted Data");
     newSheet.getRange(1, 1, unpivotedData.length, unpivotedData[0].length).setValues(unpivotedData);
 }
+
+// Convert to Numeric Section ------------------------------------------------------------------
 
 function convertToNumeric() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -134,6 +165,7 @@ function tryParseNumeric(str) {
     return null;
 }
 
+// Letify Section ------------------------------------------------------------------
 
 function letifyFormula() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -178,6 +210,8 @@ function letifyFormula() {
     }
 }
 
+// Regex Section ------------------------------------------------------------------
+
 function regexCell(str, pattern) {
     const regex = new RegExp(pattern, "g");
     const matches = [];
@@ -197,7 +231,7 @@ function regexCell(str, pattern) {
 function outputRegex(regexoutputValues){
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getActiveSheet();
-    const activeCell = sheet.getActiveCell(); // Get the currently selected cell
+    const activeCell = sheet.getActiveCell();
 
     if (!activeCell) {
         Logger.log("No cell is selected.");
@@ -213,6 +247,8 @@ function outputRegex(regexoutputValues){
         sheet.getRange(startRow + i, startColumn).setValue(splitvalues[i]);
     }
 }
+
+// Cropping Section ------------------------------------------------------------------
 
 function cropSheet() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -233,4 +269,66 @@ function cropSheet() {
     if (maxCols > startColumn + numCols - 1) {
         sheet.deleteColumns(startColumn + numCols, maxCols - (startColumn + numCols - 1));
     }
+}
+
+// Consolidation Section ------------------------------------------------------------------
+
+function getSheetNames() {
+    return SpreadsheetApp.getActiveSpreadsheet().getSheets().map(sheet => sheet.getName());
+}
+
+function consolidateData(formObject) {
+    var selectedSheets = formObject.selectedSheets || [];
+    var rangeInputs = formObject.rangeInputs || {};
+
+    var dataToConsolidate = [];
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    for (var i = 0; i < selectedSheets.length; i++) {
+        var sheetName = selectedSheets[i];
+        var sheet = ss.getSheetByName(sheetName);
+
+        if (sheet) {
+            var rangeInput = rangeInputs.hasOwnProperty(sheetName) ? rangeInputs[sheetName] : null;
+
+            if (rangeInput) {
+                try {
+                    var range = sheet.getRange(rangeInput);
+                    var numRows = range.getNumRows();
+                    var numCols = range.getNumColumns();
+                    var values = range.getValues();
+
+                    for (var j = 0; j < numRows; j++) {
+                        var rowData = values[j];
+                        var isEmptyRow = true;
+
+                        for (var k = 0; k < numCols; k++) {
+                            if (rowData[k] !== "") {
+                                isEmptyRow = false;
+                                break;
+                            }
+                        }
+
+                        if (!isEmptyRow) {
+                            rowData.push(sheetName);
+                            dataToConsolidate.push(rowData);
+                        }
+                    }
+                } catch (e) {
+                    return "Error: Invalid range for " + sheetName + ": " + e.message;
+                }
+            } else {
+                return "Error: No range specified for " + sheetName;
+            }
+        }
+    }
+
+    var newSheet = ss.insertSheet("Consolidated Data");
+    if (dataToConsolidate.length > 0) {
+        newSheet.getRange(1, 1, dataToConsolidate.length, dataToConsolidate[0].length).setValues(dataToConsolidate);
+    } else {
+        newSheet.getRange(1, 1).setValue("No data to consolidate.");
+    }
+
+    return "OK";
 }
